@@ -257,6 +257,7 @@ ResumeIntent continue playing
 ResumeIntent continue playing
 ResumeIntent resume
 ResumeIntent resume the music
+ResumeIntent start
 
 PauseAllIntent pause all
 PauseAllIntent pause all the music

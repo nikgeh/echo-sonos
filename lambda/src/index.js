@@ -695,8 +695,12 @@ function httpreq(options, responseCallback) {
 	if (options.useSQS) {
 		sqsServer.purgeQueue({QueueUrl:serverUrl}, function(err, data) {
             console.log("sending SQS " + options.path);
+            var messageJson = {
+                'type': 'sonos',
+                'payload' : options.path
+            };
 			sqsClient.sendMessage({
-					MessageBody: options.path,
+					MessageBody: JSON.stringify(messageJson),
 					QueueUrl: clientUrl
 				}, 
 				function(err, data) {

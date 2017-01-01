@@ -31,27 +31,32 @@ try {
   						queueUrl: clientUrl,
   						handleMessage: function (message, done) {
     						if (message.MessageId != prevId) {
-								var url = "http://" + settings.host + ":" + settings.port + message.Body;
-console.log("=>" + url);
-								prevId = message.MessageId;
-								request(url, function (error, response, body) {
-  									if (!error) {
-    									console.log(body) // Show the HTML for the Google homepage.
-		    							sqsServer.sendMessage(
-		    								{
-	  											MessageBody: body,
-  												QueueUrl: serverUrl
-		    								}, 
-		    								function(err, data) {
-  												if (err) {
-    												console.log('ERR1 ', err);
-  												}
-  											}
-										);
-  									} else {
-  										console.log("ERR2 " + error); 
-  									}
-								});
+    							var messageJson = JSON.parse(message.Body);
+    							var messageType = messageJson['type'];
+    							var messagePayload = messageJson['payload'];
+    							if (messageType === 'sonos') {
+									var url = "http://" + settings.host + ":" + settings.port + messagePayload;
+									console.log("=>" + url);
+									prevId = message.MessageId;
+									request(url, function (error, response, body) {
+	  									if (!error) {
+	    									console.log(body) // Show the HTML for the Google homepage.
+			    							sqsServer.sendMessage(
+			    								{
+		  											MessageBody: body,
+	  												QueueUrl: serverUrl
+			    								}, 
+			    								function(err, data) {
+	  												if (err) {
+	    												console.log('ERR1 ', err);
+	  												}
+	  											}
+											);
+	  									} else {
+	  										console.log("ERR2 " + error); 
+	  									}
+									});
+    							}
 							}
     						done();
   						},

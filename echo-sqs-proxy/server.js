@@ -1,3 +1,5 @@
+
+require('console-stamp')(console, '[ddd mmm dd yyyy HH:MM:ss.l]');
 const Consumer = require('sqs-consumer');
 const request = require('request');
 const AWS = require('aws-sdk');
@@ -8,7 +10,7 @@ const settings = require(path.resolve(__dirname, 'settings.json'));
 var prevId = '';
 var clientUrl = '';
 var serverUrl = '';
-
+console.log("Starting...")
 try {
 	AWS.config.loadFromPath(path.resolve(__dirname, 'settings.json'));
 
@@ -31,7 +33,15 @@ try {
   						queueUrl: clientUrl,
   						handleMessage: function (message, done) {
     						if (message.MessageId != prevId) {
-    							var messageJson = JSON.parse(message.Body);
+    							console.log(message.Body)
+    							var messageJson
+    							try {
+    								messageJson = JSON.parse(message.Body);
+    							} catch (err) {
+    								console.log('Invalid message ' + message.Body);
+    								done();
+    								return;
+    							}
     							var messageType = messageJson['type'];
     							var messagePayload = messageJson['payload'];
     							if (messageType === 'sonos') {
@@ -56,6 +66,18 @@ try {
 	  										console.log("ERR2 " + error); 
 	  									}
 									});
+    							} else if (messageType === 'ping') {
+	    							sqsServer.sendMessage(
+	    								{
+  											MessageBody: 'pong',
+											QueueUrl: serverUrl
+	    								},
+	    								function(err, data) {
+											if (err) {
+												console.log('ERR1 ', err);
+											}
+										}
+									);
     							}
 							}
     						done();
@@ -64,7 +86,7 @@ try {
 					});
 
 					app.on('error', function (err) {
-  						console.log(err.message);
+  						console.log('APP Error: ' + err.message);
 					});
 
 					app.start();
